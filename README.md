@@ -36,6 +36,9 @@ Cela montre que l'entraînement avec une seule époque n'a pas permis au modèle
 L'architecture Transformers s'est avérée bien plus performante en termes de cohérence linguistique et de fluidité dans les phrases produites. Toutefois, des erreurs persistent, notamment en raison du nombre limité d'époques d'entraînement.
 
 ## Analyse du screenshot TensorBoard
+
+![TensorBoard](tensorboard.png)
+
 Le graphique de TensorBoard illustre la courbe de perte (loss) pendant l'entraînement d'un modèle :
 
 Training Loss : La courbe montre une diminution progressive de la perte au fil des étapes. Cela indique que le modèle apprend les relations entre les phrases source et cible.
