@@ -51,7 +51,7 @@ trAIducteur is a tool that translates text from French to English. It uses Next.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Contributions are welcome! Please open an issue or submit a pull request
 
 ## License
 
