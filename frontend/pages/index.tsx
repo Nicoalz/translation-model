@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 
 export default function Home() {
   const [inputText, setInputText] = useState('')
@@ -11,9 +11,9 @@ export default function Home() {
       return
     }
 
-    const response = await fetch('/api/translate', {
+    const response = await fetch('http://127.0.0.1:8000/translate', {
       method: 'POST',
-      body: JSON.stringify({ text: inputText }),
+      body: JSON.stringify({ french_text: inputText }),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -22,10 +22,6 @@ export default function Home() {
     const { translation } = await response.json()
     setTranslatedText(translation)
   }, [inputText])
-
-  useEffect(() => {
-    translateText()
-  }, [inputText, translateText])
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -53,6 +49,9 @@ export default function Home() {
               />
             </div>
           </div>
+          <button onClick={translateText} className="mt-4 w-full bg-black text-white font-medium py-2 rounded-md focus:outline-none">
+            Traduire
+          </button>
         </div>
       </main>
     </div>
