@@ -1,0 +1,13 @@
+# Python version
+python==3.9.6
+
+# PyTorch and Torchtext
+torch==2.0.1
+torchtext==0.15.2
+
+# Additional packages
+spacy
+fastapi
+uvicorn
+pydantic
+python-multipart
