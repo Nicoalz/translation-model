@@ -1,0 +1,8 @@
+# ignore data:
+.data/
+
+# cache
+__pycache__/
+
+translation/
+runs/

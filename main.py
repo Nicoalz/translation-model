@@ -20,6 +20,7 @@ from torchtext.vocab import build_vocab_from_iterator
 import math
 import time
 import spacy
+import torch.onnx
 
 url_base = 'https://raw.githubusercontent.com/multi30k/dataset/master/data/task1/raw/'
 train_urls = ('train.fr.gz', 'train.en.gz')
@@ -71,7 +72,7 @@ test_data = data_process(test_filepaths)
 device = (
     "cuda"
     if torch.cuda.is_available()
-    else "mps"
+    else "cpu"
     if torch.backends.mps.is_available()
     else "cpu"
 )
@@ -586,32 +587,32 @@ CLIP = 1
 
 
 best_valid_loss = float('inf')
-print('Training started')
-for epoch in range(N_EPOCHS):
-    print('Epoch:', epoch)
-    start_time = time.time()
-    print('Start time:', start_time)
-    train_loss = train(model, train_iter, optimizer, criterion, CLIP)
-    print('Train loss:', train_loss)
-    valid_loss = evaluate(model, valid_iter, criterion)
-    print('Valid loss:', valid_loss)
+# print('Training started')
+# for epoch in range(N_EPOCHS):
+#     print('Epoch:', epoch)
+#     start_time = time.time()
+#     print('Start time:', start_time)
+#     train_loss = train(model, train_iter, optimizer, criterion, CLIP)
+#     print('Train loss:', train_loss)
+#     valid_loss = evaluate(model, valid_iter, criterion)
+#     print('Valid loss:', valid_loss)
 
-    end_time = time.time()
-    print('End time:', end_time)
+#     end_time = time.time()
+#     print('End time:', end_time)
 
-    epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+#     epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
-    print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
-    print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+#     print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
+#     print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+#     print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 
-test_loss = evaluate(model, test_iter, criterion)
+# test_loss = evaluate(model, test_iter, criterion)
 
-print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
+# print(f'| Test Loss: {test_loss:.3f} | Test PPL: {math.exp(test_loss):7.3f} |')
 
-# Save the model
-torch.save(model.state_dict(), 'seq2seq_model.pt')
-print('Model saved')
+# # Save the model
+# torch.save(model.state_dict(), 'seq2seq_model.pt')
+# print('Model saved')
 
 # # Load the model
 # model.load_state_dict(torch.load('seq2seq_model.pt'))
@@ -667,3 +668,44 @@ def translate_sentence(sentence, model, fr_vocab, en_vocab, fr_tokenizer, max_ou
 #     print(f"English: {translated}")
 
 # test_translation("Cinq femmes marchent dans la rue")
+
+def export_to_onnx(model, fr_vocab, en_vocab, output_path='seq2seq_translation_model.onnx'):
+    # Set the model to evaluation mode
+    model.eval()
+
+    # Create dummy inputs that match the model's expected input shapes
+    # We'll use the maximum sequence length you expect
+    max_input_length = 50
+    max_output_length = 50
+    batch_size = 1
+
+    # Create dummy source tensor
+    dummy_src = torch.randint(0, len(fr_vocab), (max_input_length, batch_size), dtype=torch.long)
+    
+    # Create dummy target tensor
+    dummy_trg = torch.randint(0, len(en_vocab), (max_output_length, batch_size), dtype=torch.long)
+
+    # Define dynamic axes for variable-length inputs
+    dynamic_axes = {
+        'src': {0: 'sequence', 1: 'batch'},
+        'trg': {0: 'sequence', 1: 'batch'},
+        'output': {0: 'sequence', 1: 'batch'}
+    }
+
+    # Export the model
+    torch.onnx.export(
+        model,
+        (dummy_src, dummy_trg),
+        output_path,
+        export_params=True,
+        opset_version=12,  # Choose an appropriate opset version
+        do_constant_folding=True,
+        input_names=['src', 'trg'],
+        output_names=['output'],
+        dynamic_axes=dynamic_axes
+    )
+
+    print(f"Model exported to {output_path}")
+
+# Export the model
+export_to_onnx(model, fr_vocab, en_vocab)

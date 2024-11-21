@@ -317,35 +317,3 @@ def test_translation(sentence):
 
 # test_sentence = "Cinq femmes marchent dans la rue"
 # test_translation(test_sentence)
-
-
-
-import torch 
-
-# Define dummy inputs matching your model's input dimensions
-dummy_src = torch.randint(0, len(fr_vocab), (MAX_LENGTH, BATCH_SIZE)).to(device)  # src tensor
-dummy_tgt = torch.randint(0, len(en_vocab), (MAX_LENGTH, BATCH_SIZE)).to(device)  # tgt tensor
-
-# Specify the file path for the ONNX model
-onnx_file_path = "transformer_translation.onnx"
-
-# Export the model to ONNX
-torch.onnx.export(
-    model, 
-    (dummy_src, dummy_tgt),  # Input tensors as a tuple
-    onnx_file_path, 
-    export_params=True,  # Store the trained parameter weights
-    opset_version=14,  # Use opset version 14
-    do_constant_folding=True,  # Optimize constant folding for inference
-    input_names=["src", "tgt"],  # Name input layers
-    output_names=["output"],  # Name output layers
-    dynamic_axes={
-        "src": {0: "sequence_length", 1: "batch_size"},  # Variable sequence length & batch size
-        "tgt": {0: "sequence_length", 1: "batch_size"},
-        "output": {0: "sequence_length", 1: "batch_size"},
-    },
-    verbose=True  # Enable detailed logging
-)
-
-
-print(f"Model successfully exported to {onnx_file_path}")
